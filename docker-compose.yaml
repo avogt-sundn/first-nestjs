@@ -1,0 +1,86 @@
+version: '3'
+
+networks:
+  default: 
+    name: ${DOCKER_NETWORK:-docker-default-network}
+    external: true
+
+services:
+
+  traefik:
+    image: traefik:2.6
+    ports:
+      - '80:80'
+      - '443:443'
+      - '8080:8080'
+    command:
+      - --providers.file.filename=traefik_conf.yml
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --entrypoints.websecure.http.tls=true
+      - --providers.docker=true
+      - --providers.docker.watch=true
+      - --providers.docker.exposedbydefault=false
+      - --api
+      - --api.insecure=true
+      - --api.dashboard=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${WORKSPACE_ON_HOST:-$PWD}/traefik_conf.yml:/traefik_conf.yml
+      - ${WORKSPACE_ON_HOST:-$PWD}/localhost.direct.crt:/localhost.direct.crt
+      - ${WORKSPACE_ON_HOST:-$PWD}/localhost.direct.key:/localhost.direct.key
+
+   
+  kafka:
+    hostname: kafka
+    image: docker.vectorized.io/vectorized/redpanda:v21.11.2
+    command:
+    - redpanda
+    - start
+    - --smp
+    - '1'
+    - --reserve-memory
+    - 0M
+    - --overprovisioned
+    - --node-id
+    - '0'
+    - --kafka-addr
+    - PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+    - --advertise-kafka-addr
+    - PLAINTEXT://kafka:29092,OUTSIDE://kafka:9092
+
+  kafdrop:
+      image: obsidiandynamics/kafdrop
+      ports:
+        - "9000:9000"
+      environment:
+        KAFKA_BROKERCONNECT: "kafka:29092"
+        JVM_OPTS: "-Xms16M -Xmx48M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify"
+      labels:
+        - 'traefik.enable=true'
+        - 'traefik.http.routers.kafdrop.rule=Host(`kafdrop.localhost.direct`)'
+        - 'traefik.http.routers.kafdrop.entrypoints=web,websecure'
+      depends_on:
+        - "kafka"
+
+  postgresql:
+    hostname: postgresql
+    image: postgres:14.1
+    environment:
+      POSTGRES_USER: "quarkus_test"
+      POSTGRES_PASSWORD: "quarkus_test"
+      POSTGRES_DB: "quarkus_test"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.pgadmin.rule=Host(`pgadmin.localhost.direct`)'
+      - 'traefik.http.routers.pgadmin.entrypoints=web,websecure'
