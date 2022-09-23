@@ -27,15 +27,15 @@
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
 	"mounts": [
-		"source=${localEnv:HOME}/.zsh_history,target=/home/node/.zsh_history,type=bind,consistency=cached"
+		"source=${localEnv:HOME}/.zsh_history,target=/home/node/.zsh_history,type=bind,consistency=cached",
+		"source=npmcache,target=/home/node/.npm,type=volume",
+		"source=nodemodules,target=/workspaces/${localWorkspaceFolderBasename}/node_modules,type=volume"
 	],
 	"containerEnv": {
-			"WORKSPACE_ON_HOST": "${localWorkspaceFolder}",
-			"DOCKER_NETWORK": "docker-default-network"
+		"DOCKER_NETWORK": "docker-default-network"
 	},
 	// Use 'initializeCommand' to run commands on the host before container gets created.
-	"initializeCommand": 
-		"docker network create docker-default-network || echo Fine. Using existing network.",
+	"initializeCommand": "docker network create docker-default-network || echo Fine. Using existing network.",
 	,
 	// Use 'postCreateCommand' to run commands after the container is created.
 	"postCreateCommand": "if [ -f package.json ]; then npm install; fi",
