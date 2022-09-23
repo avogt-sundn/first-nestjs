@@ -1,4 +1,0 @@
-tls:
-  certificates:
-    - certFile: /localhost.direct.crt
-      keyFile: /localhost.direct.key
