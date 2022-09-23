@@ -28,8 +28,7 @@
 	// "forwardPorts": [],
 	"mounts": [
 		"source=${localEnv:HOME}/.zsh_history,target=/home/node/.zsh_history,type=bind,consistency=cached",
-		"source=npmcache,target=/home/node/.npm,type=volume",
-		"source=nodemodules,target=/workspaces/${localWorkspaceFolderBasename}/node_modules,type=volume"
+		"source=npmcache,target=/home/node/.npm,type=volume"
 	],
 	"containerEnv": {
 		"DOCKER_NETWORK": "docker-default-network"
