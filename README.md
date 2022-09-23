@@ -31,7 +31,7 @@ Dann
    - linkes Terminal:
 
       ```bash
-      npm installco
+      npm install
       npm run start:dev
       #
       #> nest-typescript-starter@1.0.0 start
