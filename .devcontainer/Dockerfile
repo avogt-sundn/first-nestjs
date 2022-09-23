@@ -10,6 +10,8 @@ FROM mcr.microsoft.com/vscode/devcontainers/typescript-node:0-${VARIANT}
 # ARG EXTRA_NODE_VERSION=10
 # RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install ${EXTRA_NODE_VERSION}"
 
+# ignore Conda warning
+ENV IGNORE_NOTICE=true
 
 # BEGIN ------ install common utils: ping, dig, ncat
 RUN apt-get update && apt-get install -y iputils-ping dnsutils
